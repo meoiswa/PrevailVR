@@ -26,6 +26,8 @@ public class PrevailServer : NetworkManager
     //public Dictionary<int, uint> LastAck;
     public static PrevailServer Instance;
 
+    public bool gameInProgress = false;
+
     #region multi
     public void Start()
     {
@@ -113,6 +115,8 @@ public class PrevailServer : NetworkManager
 
                 playerNetCharacter.Controller = playerNetController;
 
+                playerNetController.GameStarted = gameInProgress;
+
                 GameState.TrackedObjects.Add(playerNetCharacterObject);
 
                 Players[message.Guid] = playerNetController;
@@ -134,9 +138,10 @@ public class PrevailServer : NetworkManager
     
     public void StartGame()
     {
+        gameInProgress = true;
         foreach(var p in Players)
         {
-            p.Value.GameStarted = true;
+            p.Value.GameStarted = gameInProgress;
         }
     }
 

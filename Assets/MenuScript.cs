@@ -6,6 +6,7 @@ using UnityEngine.Networking;
 [RequireComponent(typeof(Canvas))]
 public class MenuScript : MonoBehaviour {
 
+    public bool HostOnStartup;
 
     State state;
 
@@ -54,6 +55,11 @@ public class MenuScript : MonoBehaviour {
 	void Start () {
         state = State.main;
         canvas = GetComponent<Canvas>();
+        if (HostOnStartup)
+        {
+            OnButtonHost();
+            OnButtonStart();
+        }
 	}
 	
 	// Update is called once per frame
