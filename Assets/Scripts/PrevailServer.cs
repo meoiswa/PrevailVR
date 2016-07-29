@@ -7,6 +7,7 @@ using Prevail.Model;
 using Prevail.Model.Net;
 using System;
 using UnityEngine.Networking.Match;
+using UnityEngine.SceneManagement;
 
 public class PrevailServer : NetworkManager
 {
@@ -45,7 +46,7 @@ public class PrevailServer : NetworkManager
             var state = GameState.GetState();
             var msg = new StateSendMessage(state);
 
-            NetworkServer.SendUnreliableToAll(StateSendMessage.MsgId, msg);
+            NetworkServer.SendByChannelToAll(StateSendMessage.MsgId, msg, 2);
         }
     }
     #endregion
@@ -82,6 +83,7 @@ public class PrevailServer : NetworkManager
         base.OnStopServer();
         //LastAck.Clear();
         Players.Clear();
+        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
     }
 
     IEnumerator WaitForNetworkServer()
@@ -107,6 +109,7 @@ public class PrevailServer : NetworkManager
             if (Players.ContainsKey(message.Guid))
             {
                 NetworkServer.ReplacePlayerForConnection(conn, Players[message.Guid].gameObject, playerControllerId);
+                Debug.Log("Player Rejoined game");
             }
             else
             {
@@ -119,10 +122,10 @@ public class PrevailServer : NetworkManager
                 NetworkServer.Spawn(playerNetCharacterObject);
                 NetworkServer.AddPlayerForConnection(conn, playerNetControllerObject, playerControllerId);
 
-                playerNetController.Character = playerNetCharacter;
                 playerNetController.Name = message.Name;
                 playerNetController.Color = message.Color;
 
+                playerNetController.Character = playerNetCharacter;
                 playerNetCharacter.Controller = playerNetController;
 
                 playerNetController.GameStarted = gameInProgress;
