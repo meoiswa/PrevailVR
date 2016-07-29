@@ -74,6 +74,7 @@ public class PrevailServer : NetworkManager
         //LastAck = new Dictionary<int, uint>();
         Players = new Dictionary<string, PlayerNetController>();
         City.Generate();
+        StartCoroutine(WaitForNetworkServer());
     }
 
     public override void OnStopServer()
@@ -81,6 +82,15 @@ public class PrevailServer : NetworkManager
         base.OnStopServer();
         //LastAck.Clear();
         Players.Clear();
+    }
+
+    IEnumerator WaitForNetworkServer()
+    {
+        while (!NetworkServer.active)
+        {
+            yield return 0;
+        }
+        City.GenerateQuirks();
     }
 
     public override void OnServerConnect(NetworkConnection conn)
