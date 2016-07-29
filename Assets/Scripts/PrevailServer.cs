@@ -23,7 +23,7 @@ public class PrevailServer : NetworkManager
     public GameObject playerNetCharacterPrefab;
     public GameObject bossPrefab;
     
-    public Dictionary<string, PlayerNetController> Players;
+    public Dictionary<string, PlayerNetCharacter> Players;
     //public Dictionary<int, uint> LastAck;
     public static PrevailServer Instance;
 
@@ -73,7 +73,7 @@ public class PrevailServer : NetworkManager
         base.OnStartServer();
         //NetworkServer.RegisterHandler(StateAckMessage.MsgId, OnStateAck);
         //LastAck = new Dictionary<int, uint>();
-        Players = new Dictionary<string, PlayerNetController>();
+        Players = new Dictionary<string, PlayerNetCharacter>();
         City.Generate();
         StartCoroutine(WaitForNetworkServer());
     }
@@ -106,35 +106,38 @@ public class PrevailServer : NetworkManager
         var message = new PlayerSettingsMessage(reader);
         if (!message.VR)
         {
+            var playerNetControllerObject = (GameObject)Instantiate(playerNetControllerPrefab);
+            var playerNetController = playerNetControllerObject.GetComponent<PlayerNetController>();
+            NetworkServer.AddPlayerForConnection(conn, playerNetControllerObject, playerControllerId);
+
+            playerNetController.Name = message.Name;
+            playerNetController.Color = message.Color;
+
+            GameObject playerNetCharacterObject;
+            PlayerNetCharacter playerNetCharacter;
+
             if (Players.ContainsKey(message.Guid))
             {
-                NetworkServer.ReplacePlayerForConnection(conn, Players[message.Guid].gameObject, playerControllerId);
+                playerNetCharacter = Players[message.Guid];
+                playerNetCharacterObject = playerNetCharacter.gameObject;
                 Debug.Log("Player Rejoined game");
             }
             else
             {
-                var playerNetControllerObject = (GameObject)Instantiate(playerNetControllerPrefab);
-                var playerNetController = playerNetControllerObject.GetComponent<PlayerNetController>();
-
-                var playerNetCharacterObject = (GameObject)Instantiate(playerNetCharacterPrefab, Vector3.up * 10f, Quaternion.identity);
-                var playerNetCharacter = playerNetCharacterObject.GetComponent<PlayerNetCharacter>();
+                playerNetCharacterObject = (GameObject)Instantiate(playerNetCharacterPrefab, Vector3.up * 10f, Quaternion.identity);
+                playerNetCharacter = playerNetCharacterObject.GetComponent<PlayerNetCharacter>();
 
                 NetworkServer.Spawn(playerNetCharacterObject);
-                NetworkServer.AddPlayerForConnection(conn, playerNetControllerObject, playerControllerId);
-
-                playerNetController.Name = message.Name;
-                playerNetController.Color = message.Color;
-
-                playerNetController.Character = playerNetCharacter;
-                playerNetCharacter.Controller = playerNetController;
-
-                playerNetController.GameStarted = gameInProgress;
-
+                
                 GameState.TrackedObjects.Add(playerNetCharacterObject);
 
-                Players[message.Guid] = playerNetController;
+                Players[message.Guid] = playerNetCharacter;
             }
-            //LastAck[conn.connectionId] = 0;
+
+            playerNetController.Character = playerNetCharacter;
+            playerNetCharacter.Controller = playerNetController;
+
+            playerNetController.GameStarted = gameInProgress;
         }
         else
         {
@@ -154,7 +157,10 @@ public class PrevailServer : NetworkManager
         gameInProgress = true;
         foreach(var p in Players)
         {
-            p.Value.GameStarted = gameInProgress;
+            if (p.Value.Controller != null)
+            {
+                p.Value.Controller.GameStarted = gameInProgress;
+            }
         }
     }
 
