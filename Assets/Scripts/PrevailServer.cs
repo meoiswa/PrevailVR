@@ -104,7 +104,6 @@ public class PrevailServer : NetworkManager
     public override void OnServerAddPlayer(NetworkConnection conn, short playerControllerId, NetworkReader reader)
     {
         var message = new PlayerSettingsMessage(reader);
-        Debug.Log(message.Guid);
         if (!message.VR)
         {
             var playerNetControllerObject = (GameObject)Instantiate(playerNetControllerPrefab);
@@ -117,7 +116,7 @@ public class PrevailServer : NetworkManager
             GameObject playerNetCharacterObject;
             PlayerNetCharacter playerNetCharacter;
 
-            if (false && Players.ContainsKey(message.Guid))
+            if (Players.ContainsKey(message.Guid))
             {
                 playerNetCharacter = Players[message.Guid];
                 playerNetCharacterObject = playerNetCharacter.gameObject;
@@ -127,6 +126,7 @@ public class PrevailServer : NetworkManager
             {
                 playerNetCharacterObject = (GameObject)Instantiate(playerNetCharacterPrefab, Vector3.up * 10f, Quaternion.identity);
                 playerNetCharacter = playerNetCharacterObject.GetComponent<PlayerNetCharacter>();
+                playerNetCharacterObject.AddComponent<NewtonVR.NVRInteractableItem>();
 
                 NetworkServer.Spawn(playerNetCharacterObject);
                 
