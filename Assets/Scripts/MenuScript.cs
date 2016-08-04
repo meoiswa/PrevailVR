@@ -57,10 +57,17 @@ public class MenuScript : MonoBehaviour {
         canvas = GetComponent<Canvas>();
         if (HostOnStartup)
         {
-            OnButtonHost();
+            StartCoroutine(OnStartupHost());
         }
 	}
 	
+    IEnumerator OnStartupHost()
+    {
+        OnButtonHost();
+        yield return new WaitForSeconds(15);
+        OnButtonStart();
+    }
+
 	// Update is called once per frame
 	void Update () {
         var li = SteamVR_Controller.GetDeviceIndex(SteamVR_Controller.DeviceRelation.Leftmost, Valve.VR.ETrackedDeviceClass.Controller);
