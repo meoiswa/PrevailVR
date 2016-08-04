@@ -4,7 +4,8 @@ using UnityEngine.UI;
 using UnityEngine.Networking;
 
 [RequireComponent(typeof(Canvas))]
-public class MenuScript : MonoBehaviour {
+public class MenuScript : MonoBehaviour
+{
 
     public bool HostOnStartup;
 
@@ -45,22 +46,23 @@ public class MenuScript : MonoBehaviour {
     {
         Title.gameObject.SetActive(main);
         ButtonHost.gameObject.SetActive(main);
-        
+
         ButtonStart.gameObject.SetActive(!main);
         Hostname.gameObject.SetActive(!main);
         PlayerList.gameObject.SetActive(!main);
     }
-    
-	// Use this for initialization
-	void Start () {
+
+    // Use this for initialization
+    void Start()
+    {
         state = State.main;
         canvas = GetComponent<Canvas>();
         if (HostOnStartup)
         {
             StartCoroutine(OnStartupHost());
         }
-	}
-	
+    }
+
     IEnumerator OnStartupHost()
     {
         OnButtonHost();
@@ -68,11 +70,18 @@ public class MenuScript : MonoBehaviour {
         OnButtonStart();
     }
 
-	// Update is called once per frame
-	void Update () {
+    // Update is called once per frame
+    void Update()
+    {
+        PlayerList.text = "Players in this game";
+        foreach (var c in PrevailServer.Instance.Players)
+        {
+            PlayerList.text += "\n" + c.Value.name;
+        }
+
         var li = SteamVR_Controller.GetDeviceIndex(SteamVR_Controller.DeviceRelation.Leftmost, Valve.VR.ETrackedDeviceClass.Controller);
         var ri = SteamVR_Controller.GetDeviceIndex(SteamVR_Controller.DeviceRelation.Rightmost, Valve.VR.ETrackedDeviceClass.Controller);
-        
+
         if (SteamVR_Controller.Input(li).GetPressDown(SteamVR_Controller.ButtonMask.ApplicationMenu) || SteamVR_Controller.Input(ri).GetPressDown(SteamVR_Controller.ButtonMask.ApplicationMenu))
         {
             Toggle();
@@ -123,7 +132,7 @@ public class MenuScript : MonoBehaviour {
 
     public void OnButtonExit()
     {
-        if(state == State.ingame || state == State.waiting)
+        if (state == State.ingame || state == State.waiting)
         {
             PrevailServer.Instance.StopHost();
             state = State.main;
