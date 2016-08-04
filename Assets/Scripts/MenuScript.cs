@@ -58,7 +58,6 @@ public class MenuScript : MonoBehaviour {
         if (HostOnStartup)
         {
             OnButtonHost();
-            OnButtonStart();
         }
 	}
 	
@@ -107,7 +106,7 @@ public class MenuScript : MonoBehaviour {
     {
         if (state == State.waiting)
         {
-            PrevailServer.Instance.StartGame();
+            GameScript.Instance.StartGame();
             state = State.ingame;
 
             ButtonStart.gameObject.SetActive(false);

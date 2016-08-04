@@ -100,12 +100,15 @@ public class PrevailServer : NetworkManager
         base.OnServerConnect(conn);
         NetworkServer.SendToClient(conn.connectionId, CitySyncMessage.MsgId, new CitySyncMessage(City.Seed));
     }
-    
+
+    int counter = 0;
+
     public override void OnServerAddPlayer(NetworkConnection conn, short playerControllerId, NetworkReader reader)
     {
         var message = new PlayerSettingsMessage(reader);
         if (!message.VR)
         {
+
             var playerNetControllerObject = (GameObject)Instantiate(playerNetControllerPrefab);
             var playerNetController = playerNetControllerObject.GetComponent<PlayerNetController>();
             NetworkServer.AddPlayerForConnection(conn, playerNetControllerObject, playerControllerId);
@@ -124,7 +127,11 @@ public class PrevailServer : NetworkManager
             }
             else
             {
-                playerNetCharacterObject = (GameObject)Instantiate(playerNetCharacterPrefab, Vector3.up * 10f, Quaternion.identity);
+                var spawns = GameObject.FindObjectsOfType<NetworkStartPosition>();
+                var spawn = spawns[counter++ % spawns.Length];
+                
+
+                playerNetCharacterObject = (GameObject)Instantiate(playerNetCharacterPrefab, spawn.transform.position, Quaternion.identity);
                 playerNetCharacter = playerNetCharacterObject.GetComponent<PlayerNetCharacter>();
                 playerNetCharacterObject.AddComponent<NewtonVR.NVRInteractableItem>();
 
@@ -137,8 +144,6 @@ public class PrevailServer : NetworkManager
 
             playerNetController.Character = playerNetCharacter;
             playerNetCharacter.Controller = playerNetController;
-
-            playerNetController.GameStarted = gameInProgress;
         }
         else
         {
@@ -153,17 +158,6 @@ public class PrevailServer : NetworkManager
         }
     }
     
-    public void StartGame()
-    {
-        gameInProgress = true;
-        foreach(var p in Players)
-        {
-            if (p.Value.Controller != null)
-            {
-                p.Value.Controller.GameStarted = gameInProgress;
-            }
-        }
-    }
 
     #endregion
 }
